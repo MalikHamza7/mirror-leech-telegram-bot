@@ -190,7 +190,7 @@ class GoogleDriveHelper:
         media_body = MediaFileUpload(file_path,
                                      mimetype=mime_type,
                                      resumable=True,
-                                     chunksize=70 * 1024 * 1024)
+                                     chunksize=50 * 1024 * 1024)
 
         # Insert a file
         drive_file = self.__service.files().create(supportsTeamDrives=True,
@@ -253,8 +253,6 @@ class GoogleDriveHelper:
                     raise Exception('Upload has been manually cancelled!')
                 link = f"https://drive.google.com/folderview?id={dir_id}"
                 if self.is_cancelled:
-                    LOGGER.info("Deleting uploaded data from Drive...")
-                    self.deletefile(link)
                     return
                 LOGGER.info("Uploaded To G-Drive: " + file_name)
         except Exception as e:
@@ -269,8 +267,12 @@ class GoogleDriveHelper:
         finally:
             self.updater.cancel()
             if self.is_cancelled:
+                if mime_type == 'Folder':
+                    LOGGER.info("Deleting uploaded data from Drive...")
+                    link = f"https://drive.google.com/folderview?id={dir_id}"
+                    self.deletefile(link)
                 return
-        self.__listener.onUploadComplete(link, size, self.__total_files, self.__total_folders, mime_type)
+        self.__listener.onUploadComplete(link, size, self.__total_files, self.__total_folders, mime_type, self.name)
 
     @retry(wait=wait_exponential(multiplier=2, min=3, max=6), stop=stop_after_attempt(3),
            retry=retry_if_exception_type(HttpError), before=before_log(LOGGER, logging.DEBUG))
@@ -902,7 +904,7 @@ class GoogleDriveHelper:
         request = self.__service.files().get_media(fileId=file_id)
         filename = filename.replace('/', '')
         fh = FileIO('{}{}'.format(path, filename), 'wb')
-        downloader = MediaIoBaseDownload(fh, request, chunksize = 70 * 1024 * 1024)
+        downloader = MediaIoBaseDownload(fh, request, chunksize=50 * 1024 * 1024)
         done = False
         while not done:
             if self.is_cancelled:
