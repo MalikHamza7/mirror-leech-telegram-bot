@@ -1,4 +1,5 @@
-config.env
+mltbenv/*
+config.py
 *.pyc
 data*
 .vscode
@@ -10,10 +11,10 @@ log.txt
 accounts/*
 Thumbnails/*
 rclone/*
+tokens/*
+sabnzbd/*
 list_drives.txt
 cookies.txt
 downloads
-bot.session
-user.session
-terabox.txt
+bot.session*
 rclone.conf
